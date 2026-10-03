@@ -24,27 +24,83 @@
 
 ## 使い方（クイックスタート）
 
-ハードウェアに合わせて2つの関数（BSP）を実装します。
+ご使用の環境（通常のC言語環境、またはArduino環境）に合わせて、依存関数（BSP）を実装して組み込みます。
 
-### 1. 依存関数の実装（BSP）
+### A. 通常のC言語環境（ベアメタル、各社MCU HAL、RTOS等）
+
+純粋なC言語環境（`morse-encoder.c` と同一のリンケージ）で動作させる場合の最小構成です。
+
+#### 1. 依存関数（BSP）の実装 (`bsp_generic.c`)
 ```c
 #include "morse-encoder.h"
+#include "your_mcu_hal.h" // ご使用のマイコンのヘッダー
 
-uint32_t morse_get_time_ms(void) { return your_hardware_get_millis(); }
-void morse_set_signal(uint8_t state) { state ? your_hardware_led_on() : your_hardware_led_off(); }
+/* 1. ハードウェアのシステムタイマー（ミリ秒）を返す関数 */
+uint32_t morse_get_time_ms(void) {
+    return HAL_GetTick(); // 例: STM32CubeHALの場合
+}
+
+/* 2. 指定された状態（1:ON, 0:OFF）に応じてGPIOを制御する関数 */
+void morse_set_signal(uint8_t state) {
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
 ```
 
-### 2. メインループでの実行
+#### 2. メインループの実装 (`main.c`)
 ```c
 #include "morse-encoder.h"
 
 int main(void) {
+    // ハードウェアの初期化をここで行う
+    
     morse_init();
     morse_start("SOS");
+
     while (1) {
-        morse_update();
-        if (!morse_is_busy()) { /* 完了処理 */ }
+        morse_update(); // 状態遷移マシンをノンブロッキングで更新
+        
+        // 他のバックグラウンドタスクをここに記述可能
     }
+}
+```
+
+---
+
+### B. Arduino環境（C++ / クロスプラットフォーム）
+
+Arduino環境の関数（`millis()` や `digitalWrite()`）はC++としてコンパイルされるため、BSP側の拡張子を **`.cpp`** にして連携させます。CPUの種類（AVR、ESP32、RP2040、ARM等）を問わず完全に共通のコードで動作します。
+
+#### 1. 依存関数（BSP）の実装 (`bsp_arduino.cpp`)
+```cpp
+#include <Arduino.h>
+#include "morse-encoder.h"
+
+/* 1. Arduinoのタイマーから現在時刻（ms）を取得 */
+uint32_t morse_get_time_ms(void) {
+    return millis();
+}
+
+/* 2. 指定された状態に応じて内蔵LEDを制御 */
+void morse_set_signal(uint8_t state) {
+    digitalWrite(LED_BUILTIN, state ? HIGH : LOW);
+}
+```
+
+#### 2. スケッチの実装 (`.ino`)
+`delay()` を使用しないため、`loop()` 内で他の処理を同時に実行してもモールス信号の点滅が途切れることはありません。
+```cpp
+#include "morse-encoder.h"
+
+void setup() {
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
+
+    morse_init();
+    morse_start("SOS CQ CQ");
+}
+
+void loop() {
+    morse_update(); // 毎ループ高速に呼び出します
 }
 ```
 
