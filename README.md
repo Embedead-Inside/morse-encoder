@@ -30,7 +30,7 @@
 
 純粋なC言語環境（`morse-encoder.c` と同一のリンケージ）で動作させる場合の最小構成です。
 
-#### 1. 依存関数（BSP）の実装 (`bsp_generic.c`)
+#### 1. 依存関数（BSP）の実装 (`morse_generic.c`)
 ```c
 #include "morse-encoder.h"
 #include "your_mcu_hal.h" // ご使用のマイコンのヘッダー
@@ -70,7 +70,7 @@ int main(void) {
 
 Arduino環境の関数（`millis()` や `digitalWrite()`）はC++としてコンパイルされるため、BSP側の拡張子を **`.cpp`** にして連携させます。CPUの種類（AVR、ESP32、RP2040、ARM等）を問わず完全に共通のコードで動作します。
 
-#### 1. 依存関数（BSP）の実装 (`bsp_arduino.cpp`)
+#### 1. 依存関数（BSP）の実装 (`morse_arduino.cpp`)
 ```cpp
 #include <Arduino.h>
 #include "morse-encoder.h"
