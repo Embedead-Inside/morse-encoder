@@ -1,6 +1,7 @@
 # morse-encoder
 
-[![License: MIT-0](https://shields.io)](https://spdx.org)
+[![License: MIT-0](https://img.shields.io/badge/License-MIT--0-blue.svg)](https://spdx.org/licenses/MIT-0.html)
+[![Language: C99](https://img.shields.io/badge/Language-C99-green.svg)](#)
 
 組み込みシステム向けにC言語で書かれた、超軽量・プラットフォーム非依存のノンブロッキング型モールス符号エンコーダーモジュールです。
 
